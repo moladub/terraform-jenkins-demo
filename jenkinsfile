@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/moladub/terraform-jenkins-demo.git'
+            }
+        }
+        
+        stage('Terraform Init') {
+            steps {
+                script {
+                    sh 'terraform init'
+                }
+            }
+        }
+        
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    sh 'terraform plan -out=tfplan'
+                }
+            }
+        }
+        
+        stage('Terraform Apply') {
+            steps {
+                script {
+                    sh 'terraform apply -auto-approve tfplan'
+                }
+            }
+        }
+        
+        stage('Terraform Destroy') {
+            steps {
+                script {
+                    sh 'terraform destroy -auto-approve'
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                sh 'rm -rf .terraform'
+                sh 'rm -f tfplan'
+            }
+        }
+        success {
+            echo 'Infrastructure deployed successfully'
+        }
+        failure {
+            echo 'Infrastructure deployment failed'
+        }
+    }
+}
